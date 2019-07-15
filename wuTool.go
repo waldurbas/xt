@@ -283,6 +283,25 @@ func StrnIcmp(s1, s2 string, le int) int {
 	return -1
 }
 
+// Esubstr2int
+func Esubstr2int(s string, ix int, le int) int {
+	b := []byte(s[ix:])
+	l := len(s)
+	z := 0
+	f := 1
+
+	for i := 0; i < le && i < l; i++ {
+		if b[i] >= '0' && b[i] <= '9' {
+			z = z*10 + int(b[i]-'0')
+
+		} else if b[i] == '-' {
+			f = -1
+		}
+	}
+
+	return z * f
+}
+
 // ISO8859_1 to UTF8
 func ToUTF8(s string) string {
 
@@ -343,4 +362,12 @@ func SHex(buf *[]byte) string {
 	}
 
 	return out
+}
+
+// GetEnviron
+func GetEnv(key, fallback string) string {
+	if value, ok := os.LookupEnv(key); ok {
+		return value
+	}
+	return fallback
 }
