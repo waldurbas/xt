@@ -1,31 +1,158 @@
 package xt
 
 import (
+	"bufio"
 	"bytes"
 	"compress/gzip"
 	"encoding/base64"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 )
 
 var (
-	CurrentDir  string
-	LogFileName string
+	CurrentDir   string
+	LogFileName  string
+	xargs        map[string]string
+	xargsWithOut []string
 )
 
-// Initialize modul
-func Initialize() error {
+// init: wird automatisch aufgerufen
+func init() {
+	CurrentDir = "."
 	dir, err := os.Getwd()
 
 	if err == nil {
 		CurrentDir = dir
 	}
 
-	return err
+	xargs = make(map[string]string)
+
+	for _, v := range os.Args[1:] {
+		ss := strings.Split(v, "=")
+		if ss[0][0] == '-' {
+			sx := strings.ToUpper(ss[0][1:])
+
+			if len(ss) > 1 {
+				xargs[sx] = ss[1]
+			} else {
+				xargs[sx] = "1"
+			}
+		} else {
+			xargsWithOut = append(xargsWithOut, ss[0])
+		}
+	}
+}
+
+// Param
+func Param(ix int, def string) string {
+	if ix >= len(xargsWithOut) {
+		return def
+	}
+
+	return xargsWithOut[ix]
+}
+
+// ParamExist
+func ParamExist(sKey string) bool {
+	uKey := strings.ToUpper(sKey)
+
+	_, ok := xargs[uKey]
+	return ok
+}
+
+// ParamValueExist
+func ParamValueExist(sKey string) (string, bool) {
+	uKey := strings.ToUpper(sKey)
+
+	v, ok := xargs[uKey]
+	return uKey, ok && len(v) > 0
+}
+
+// ParamValue
+func ParamValue(sKey string, def string) string {
+	uKey, ok := ParamValueExist(sKey)
+	if !ok {
+		xargs[uKey] = def
+	}
+
+	return xargs[uKey]
+}
+
+// ParamAsInt
+func ParamAsInt(sKey string, def int) int {
+	uKey, ok := ParamValueExist(sKey)
+	if !ok {
+		xargs[uKey] = strconv.Itoa(def)
+	}
+
+	return Esubstr2int(xargs[uKey], 0, 10)
+}
+
+// ParamAsBool
+func ParamAsBool(sKey string, def bool) bool {
+	uKey, ok := ParamValueExist(sKey)
+	if !ok {
+		ii := 0
+		if def {
+			ii = 1
+		}
+
+		xargs[uKey] = strconv.Itoa(ii)
+	}
+
+	return xargs[uKey] == "1"
+}
+
+// ParamSetDefault
+func ParamSet(sKey string, def string) {
+	uKey, _ := ParamValueExist(sKey)
+	xargs[uKey] = def
+}
+
+// Printparam
+func PrintParam() {
+	fmt.Println("\n--> xParams:")
+	for i, v := range xargsWithOut {
+		fmt.Printf("%d. [%s]\n", i, v)
+	}
+
+	fmt.Println("----------------------------")
+	for k, v := range xargs {
+		fmt.Printf("%-16.16s: [%s]\n", k, v)
+	}
+	fmt.Println("\n")
+}
+
+// PermitWeekDay
+func PermitWeekDay(t time.Time, sDays []string) bool {
+	ih := int(t.Weekday())
+	ok := false
+	for i := 0; i < len(sDays) && !ok; i++ {
+		switch strings.ToLower(sDays[i]) {
+		case "mo", "1":
+			ok = ih == 1
+		case "di", "2":
+			ok = ih == 2
+		case "mi", "3":
+			ok = ih == 3
+		case "do", "4":
+			ok = ih == 4
+		case "fr", "5":
+			ok = ih == 5
+		case "sa", "6":
+			ok = ih == 6
+		case "so", "7":
+			ok = ih == 7
+		}
+	}
+
+	return ok
 }
 
 // Fatal-Error
@@ -53,15 +180,28 @@ func Log(v ...interface{}) {
 
 	stime := STime(time.Now())
 
-	fmt.Print(stime)
-	fmt.Print(s)
-	fmt.Print("\n")
+	if len(s) > 0 {
+		fmt.Print(stime)
+		fmt.Print(s)
+		fmt.Print("\n")
+	}
 	_log(stime, s)
 }
 
 func _log(stime string, s string) {
-	LogFileName = CurrentDir + "/" + FTime()[0:8] + ".log"
-	txt := "\n" + stime + " " + s
+	sti := FTime()[0:8]
+
+	LogFileName = CurrentDir + "/log/" + sti[0:4] + "/" + sti[4:6]
+	if !DirExists(LogFileName) {
+		CreateDir(LogFileName)
+	}
+
+	LogFileName = LogFileName + "/" + sti + ".log"
+
+	txt := "\n"
+	if len(s) > 0 {
+		txt = txt + stime + " " + s
+	}
 	AppendFile(LogFileName, txt)
 }
 
@@ -136,6 +276,44 @@ func Gzip(data *[]byte) string {
 	return str
 }
 
+// GzipFile
+func GzipFile(fileName string) (bool, error) {
+	rawfile, err := os.Open(fileName)
+
+	if err != nil {
+		return false, err
+	}
+	defer rawfile.Close()
+
+	// calculate the buffer size for rawfile
+	info, _ := rawfile.Stat()
+
+	var size int64 = info.Size()
+	rawbytes := make([]byte, size)
+
+	// read rawfile content into buffer
+	buffer := bufio.NewReader(rawfile)
+	_, err = buffer.Read(rawbytes)
+
+	if err != nil {
+		return false, err
+	}
+
+	var buf bytes.Buffer
+	writer := gzip.NewWriter(&buf)
+	writer.Write(rawbytes)
+	writer.Close()
+
+	err = ioutil.WriteFile(fileName+".gz", buf.Bytes(), info.Mode())
+
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+
+}
+
 // Create Directory
 func CreateDir(dirName string) bool {
 	src, err := os.Stat(dirName)
@@ -155,6 +333,17 @@ func CreateDir(dirName string) bool {
 	}
 
 	return false
+}
+
+// DirExists
+func DirExists(path string) bool {
+	f, err := os.Stat(path)
+
+	if os.IsNotExist(err) {
+		return false
+	}
+
+	return f.IsDir()
 }
 
 // FileExists
@@ -237,19 +426,6 @@ func WriteFile(path string, data string) (int, error) {
 	return n, nil
 }
 
-// string-compare
-func StrComp(a, b string) int {
-	if a == b {
-		return 0
-	}
-
-	if a < b {
-		return -1
-	}
-
-	return 1
-}
-
 // wenn TeilString gefunden, den Rest liefern
 func StrStr(fStr string, needle string) string {
 	if needle == "" {
@@ -263,24 +439,33 @@ func StrStr(fStr string, needle string) string {
 }
 
 // StrnIcmp
-func StrnIcmp(s1, s2 string, le int) int {
-	b1 := []byte(s1)
-	b2 := []byte(s2)
+func StrnIcmp(a, b string, le int) bool {
+	l1 := len(a)
+	l2 := len(b)
 
-	l1 := len(b1)
-	l2 := len(b2)
-
-	for i := 0; i < le && i < l1 && i < l2; i++ {
-		if b1[i] != b2[i] {
-			return -1
-		}
-
-		if (i + 1) == le {
-			return 0
-		}
+	if l1 < le || l2 < le {
+		return false
 	}
 
-	return -1
+	return strings.EqualFold(a[0:le], b[0:le])
+}
+
+// String Ignore Compare
+func StrIcmp(a, b string) bool {
+	return strings.EqualFold(a, b)
+}
+
+// string-compare
+func StrComp(a, b string) int {
+	if a == b {
+		return 0
+	}
+
+	if a < b {
+		return -1
+	}
+
+	return 1
 }
 
 // Esubstr2int
@@ -300,6 +485,22 @@ func Esubstr2int(s string, ix int, le int) int {
 	}
 
 	return z * f
+}
+
+// eSubStr
+func Esubstr(s string, ix int, le int) string {
+	l := len(s)
+
+	if ix > l {
+		return ""
+	}
+
+	if (ix + le) > l {
+		le = l - ix
+	}
+
+	b := s[ix : ix+le]
+	return b
 }
 
 // ISO8859_1 to UTF8
@@ -365,9 +566,9 @@ func SHex(buf *[]byte) string {
 }
 
 // GetEnviron
-func GetEnv(key, fallback string) string {
+func GetEnv(key, defval string) string {
 	if value, ok := os.LookupEnv(key); ok {
 		return value
 	}
-	return fallback
+	return defval
 }
