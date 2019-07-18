@@ -123,8 +123,15 @@ func PrintParam() {
 	}
 
 	fmt.Println("----------------------------")
-	for k, v := range xargs {
-		fmt.Printf("%-16.16s: [%s]\n", k, v)
+
+	var sk []string
+	for k := range xargs {
+		sk = append(sk, k)
+	}
+	sort.Strings(sk)
+
+	for _, k := range sk {
+		fmt.Printf("%-16.16s: [%s]\n", k, xargs[k])
 	}
 	fmt.Println("\n")
 }
