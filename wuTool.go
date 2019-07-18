@@ -155,6 +155,30 @@ func PermitWeekDay(t time.Time, sDays []string) bool {
 	return ok
 }
 
+// PermitHour: array: [ "12:00-18:00","1400-2200"]
+func PermitHour(t time.Time, sh []string) bool {
+	tt := t.Hour()*100 + t.Minute()
+	ok := false
+
+	var vt int
+	var bt int
+	for i := 0; i < len(sh) && !ok; i++ {
+		s := strings.Split(sh[i], "-")
+
+		if len(s) == 1 {
+			vt = Esubstr2int(s[0], 0, 5)
+			bt = 2400
+		} else {
+			vt = Esubstr2int(s[0], 0, 5)
+			bt = Esubstr2int(s[1], 0, 5)
+		}
+
+		ok = tt >= vt && tt <= bt
+	}
+
+	return ok
+}
+
 // Fatal-Error
 func Fatal(v ...interface{}) {
 	stime := STime(time.Now())
