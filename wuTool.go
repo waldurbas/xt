@@ -154,8 +154,8 @@ func PermitWeekDay(t time.Time, sDays []string) bool {
 			ok = ih == 5
 		case "sa", "6":
 			ok = ih == 6
-		case "so", "7":
-			ok = ih == 7
+		case "so", "0":
+			ok = ih == 0
 		}
 	}
 
