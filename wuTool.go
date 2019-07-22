@@ -138,28 +138,27 @@ func PrintParam() {
 
 // PermitWeekDay
 func PermitWeekDay(t time.Time, sDays []string) bool {
-	ih := int(t.Weekday())
-	ok := false
-	for i := 0; i < len(sDays) && !ok; i++ {
+	ih := -1
+	for i := 0; i < len(sDays) && ih == -1; i++ {
 		switch strings.ToLower(sDays[i]) {
 		case "mo", "1":
-			ok = ih == 1
+			ih = 1
 		case "di", "2":
-			ok = ih == 2
+			ih = 2
 		case "mi", "3":
-			ok = ih == 3
+			ih = 3
 		case "do", "4":
-			ok = ih == 4
+			ih = 4
 		case "fr", "5":
-			ok = ih == 5
+			ih = 5
 		case "sa", "6":
-			ok = ih == 6
+			ih = 6
 		case "so", "0":
-			ok = ih == 0
+			ih = 0
 		}
 	}
 
-	return ok
+	return int(t.Weekday()) == ih
 }
 
 // PermitHour: array: [ "12:00-18:00","1400-2200"]
