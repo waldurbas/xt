@@ -17,6 +17,7 @@ import (
 
 var (
 	CurrentDir   string
+	LogDir       string
 	LogFileName  string
 	xargs        map[string]string
 	xargsWithOut []string
@@ -31,6 +32,7 @@ func init() {
 		CurrentDir = dir
 	}
 
+	LogDir = CurrentDir + "/log"
 	xargs = make(map[string]string)
 
 	for _, v := range os.Args[1:] {
@@ -41,7 +43,11 @@ func init() {
 			if len(ss) > 1 {
 				xargs[sx] = ss[1]
 			} else {
-				xargs[sx] = "1"
+				if sx[0] == 'Q' {
+					xargs["Q"] = ss[0][2:]
+				} else {
+					xargs[sx] = "1"
+				}
 			}
 		} else {
 			xargsWithOut = append(xargsWithOut, ss[0])
@@ -222,7 +228,7 @@ func Log(v ...interface{}) {
 func _log(stime string, s string) {
 	sti := FTime()[0:8]
 
-	LogFileName = CurrentDir + "/log/" + sti[0:4] + "/" + sti[4:6]
+	LogFileName = LogDir + "/" + sti[0:4] + "/" + sti[4:6]
 	if !DirExists(LogFileName) {
 		CreateDir(LogFileName)
 	}
@@ -532,6 +538,26 @@ func Esubstr(s string, ix int, le int) string {
 
 	b := s[ix : ix+le]
 	return b
+}
+
+// Format Integer mit Tausend Points
+func FormatInt(n int64) string {
+	in := strconv.FormatInt(n, 10)
+	out := make([]byte, len(in)+(len(in)-2+int(in[0]/'0'))/3)
+	if in[0] == '-' {
+		in, out[0] = in[1:], '-'
+	}
+
+	for i, j, k := len(in)-1, len(out)-1, 0; ; i, j = i-1, j-1 {
+		out[j] = in[i]
+		if i == 0 {
+			return string(out)
+		}
+		if k++; k == 3 {
+			j, k = j-1, 0
+			out[j] = '.'
+		}
+	}
 }
 
 // ISO8859_1 to UTF8
