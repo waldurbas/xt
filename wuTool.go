@@ -541,7 +541,7 @@ func Esubstr(s string, ix int, le int) string {
 }
 
 // Format Integer mit Tausend Points
-func FormatInt(n int64) string {
+func FormatInt64(n int64) string {
 	in := strconv.FormatInt(n, 10)
 	out := make([]byte, len(in)+(len(in)-2+int(in[0]/'0'))/3)
 	if in[0] == '-' {
@@ -558,6 +558,11 @@ func FormatInt(n int64) string {
 			out[j] = '.'
 		}
 	}
+}
+
+// Format Integer mit Tausend Points
+func FormatInt(n int) string {
+	return FormatInt64(int64(n))
 }
 
 // ISO8859_1 to UTF8
