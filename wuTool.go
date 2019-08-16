@@ -46,7 +46,7 @@ func init() {
 				if sx[0] == 'Q' {
 					xargs["Q"] = ss[0][2:]
 				} else {
-					xargs[sx] = "1"
+					xargs[sx] = ""
 				}
 			}
 		} else {
@@ -64,46 +64,78 @@ func Param(ix int, def string) string {
 	return xargsWithOut[ix]
 }
 
-// ParamExist
-func ParamExist(sKey string) bool {
-	uKey := strings.ToUpper(sKey)
-
-	_, ok := xargs[uKey]
-	return ok
-}
-
-// ParamValueExist
-func ParamValueExist(sKey string) (string, bool) {
-	uKey := strings.ToUpper(sKey)
-
-	v, ok := xargs[uKey]
-	return uKey, ok && len(v) > 0
-}
-
 // ParamValue
 func ParamValue(sKey string, def string) string {
 	uKey, ok := ParamValueExist(sKey)
 	if !ok {
-		xargs[uKey] = def
+		return def
 	}
 
 	return xargs[uKey]
 }
 
+// ParamKeyExist
+func ParamKeyExist(sKey string) bool {
+	_, ok := ParamExist(sKey)
+	return ok
+}
+
+func ParamExist(sKey string) (string, bool) {
+	uKey := strings.ToUpper(sKey)
+
+	v, ok := xargs[uKey]
+	//	fmt.Println("ParamExist.Key: ", uKey, ", ok: ", ok, ", v: ", v)
+
+	return v, ok
+}
+
+// ParamValueExist
+func ParamValueExist(sKey string) (string, bool) {
+	uKey := strings.ToUpper(sKey)
+	v, ok := xargs[uKey]
+	return v, ok && len(v) > 0
+}
+
 // ParamAsInt
 func ParamAsInt(sKey string, def int) int {
-	uKey, ok := ParamValueExist(sKey)
+	v, ok := ParamValueExist(sKey)
 	if !ok {
-		xargs[uKey] = strconv.Itoa(def)
+		return def
 	}
 
-	return Esubstr2int(xargs[uKey], 0, 10)
+	return Esubstr2int(v, 0, 10)
 }
 
 // ParamAsBool
 func ParamAsBool(sKey string, def bool) bool {
-	uKey, ok := ParamValueExist(sKey)
+	v, ok := ParamValueExist(sKey)
 	if !ok {
+		return def
+	}
+
+	return xargs[v] == "1"
+}
+
+// ParamSetDefault
+func ParamSet(sKey string, def string) {
+	uKey := strings.ToUpper(sKey)
+	xargs[uKey] = def
+}
+
+// ParamSetAsInt
+func ParamSetAsInt(sKey string, def int) {
+	_, ok := ParamValueExist(sKey)
+	if !ok {
+		uKey := strings.ToUpper(sKey)
+		xargs[uKey] = strconv.Itoa(def)
+	}
+}
+
+// ParamSetAsBool
+func ParamSetAsBool(sKey string, def bool) {
+	_, ok := ParamValueExist(sKey)
+	if !ok {
+		uKey := strings.ToUpper(sKey)
 		ii := 0
 		if def {
 			ii = 1
@@ -111,14 +143,6 @@ func ParamAsBool(sKey string, def bool) bool {
 
 		xargs[uKey] = strconv.Itoa(ii)
 	}
-
-	return xargs[uKey] == "1"
-}
-
-// ParamSetDefault
-func ParamSet(sKey string, def string) {
-	uKey, _ := ParamValueExist(sKey)
-	xargs[uKey] = def
 }
 
 // Printparam
