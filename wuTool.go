@@ -19,7 +19,7 @@ var (
 	CurrentDir   string
 	LogDir       string
 	LogFileName  string
-	xargs        map[string]string
+	Xargs        map[string]string
 	xargsWithOut []string
 )
 
@@ -33,20 +33,20 @@ func init() {
 	}
 
 	LogDir = CurrentDir + "/log"
-	xargs = make(map[string]string)
+	Xargs = make(map[string]string)
 
 	for _, v := range os.Args[1:] {
 		ss := strings.Split(v, "=")
 		if ss[0][0] == '-' {
-			sx := strings.ToUpper(ss[0][1:])
+			sx := strings.ToLower(ss[0][1:])
 
 			if len(ss) > 1 {
-				xargs[sx] = ss[1]
+				Xargs[sx] = ss[1]
 			} else {
-				if sx[0] == 'Q' {
-					xargs["Q"] = ss[0][2:]
+				if sx[0] == 'q' {
+					Xargs["q"] = ss[0][2:]
 				} else {
-					xargs[sx] = ""
+					Xargs[sx] = ""
 				}
 			}
 		} else {
@@ -66,12 +66,12 @@ func Param(ix int, def string) string {
 
 // ParamValue
 func ParamValue(sKey string, def string) string {
-	uKey, ok := ParamValueExist(sKey)
+	lKey, ok := ParamValueExist(sKey)
 	if !ok {
 		return def
 	}
 
-	return xargs[uKey]
+	return Xargs[lKey]
 }
 
 // ParamKeyExist
@@ -81,9 +81,9 @@ func ParamKeyExist(sKey string) bool {
 }
 
 func ParamExist(sKey string) (string, bool) {
-	uKey := strings.ToUpper(sKey)
+	lKey := strings.ToLower(sKey)
 
-	v, ok := xargs[uKey]
+	v, ok := Xargs[lKey]
 	//	fmt.Println("ParamExist.Key: ", uKey, ", ok: ", ok, ", v: ", v)
 
 	return v, ok
@@ -91,8 +91,8 @@ func ParamExist(sKey string) (string, bool) {
 
 // ParamValueExist
 func ParamValueExist(sKey string) (string, bool) {
-	uKey := strings.ToUpper(sKey)
-	v, ok := xargs[uKey]
+	lKey := strings.ToLower(sKey)
+	v, ok := Xargs[lKey]
 	return v, ok && len(v) > 0
 }
 
@@ -113,21 +113,21 @@ func ParamAsBool(sKey string, def bool) bool {
 		return def
 	}
 
-	return xargs[v] == "1"
+	return Xargs[v] == "1"
 }
 
 // ParamSetDefault
 func ParamSet(sKey string, def string) {
-	uKey := strings.ToUpper(sKey)
-	xargs[uKey] = def
+	lKey := strings.ToLower(sKey)
+	Xargs[lKey] = def
 }
 
 // ParamSetAsInt
 func ParamSetAsInt(sKey string, def int) {
 	_, ok := ParamValueExist(sKey)
 	if !ok {
-		uKey := strings.ToUpper(sKey)
-		xargs[uKey] = strconv.Itoa(def)
+		lKey := strings.ToLower(sKey)
+		Xargs[lKey] = strconv.Itoa(def)
 	}
 }
 
@@ -135,13 +135,13 @@ func ParamSetAsInt(sKey string, def int) {
 func ParamSetAsBool(sKey string, def bool) {
 	_, ok := ParamValueExist(sKey)
 	if !ok {
-		uKey := strings.ToUpper(sKey)
+		lKey := strings.ToLower(sKey)
 		ii := 0
 		if def {
 			ii = 1
 		}
 
-		xargs[uKey] = strconv.Itoa(ii)
+		Xargs[lKey] = strconv.Itoa(ii)
 	}
 }
 
@@ -155,13 +155,13 @@ func PrintParam() {
 	fmt.Println("----------------------------")
 
 	var sk []string
-	for k := range xargs {
+	for k := range Xargs {
 		sk = append(sk, k)
 	}
 	sort.Strings(sk)
 
 	for _, k := range sk {
-		fmt.Printf("%-16.16s: [%s]\n", k, xargs[k])
+		fmt.Printf("%-16.16s: [%s]\n", k, Xargs[k])
 	}
 	fmt.Println("\n")
 }
@@ -229,10 +229,21 @@ func Fatal(v ...interface{}) {
 	os.Exit(1)
 }
 
-// LogFunction
+// LogFormat-Function
+func LogF(format string, v ...interface{}) {
+	s := fmt.Sprintf(format, v...)
+
+	_logx(s)
+}
+
+// Log-Function
 func Log(v ...interface{}) {
 	s := fmt.Sprint(v...)
 
+	_logx(s)
+}
+
+func _logx(s string) {
 	buf := []byte(s)
 	if buf[0] == '\n' {
 		fmt.Print("\n")
