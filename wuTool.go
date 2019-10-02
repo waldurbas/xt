@@ -80,6 +80,7 @@ func ParamKeyExist(sKey string) bool {
 	return ok
 }
 
+// ParamExist
 func ParamExist(sKey string) (string, bool) {
 	lKey := strings.ToLower(sKey)
 
@@ -108,12 +109,16 @@ func ParamAsInt(sKey string, def int) int {
 
 // ParamAsBool
 func ParamAsBool(sKey string, def bool) bool {
-	v, ok := ParamValueExist(sKey)
+	v, ok := ParamExist(sKey)
 	if !ok {
 		return def
 	}
 
-	return Xargs[v] == "1"
+	if len(v) == 0 {
+		return true
+	}
+
+	return v == "1"
 }
 
 // ParamSetDefault
