@@ -99,14 +99,30 @@ func ParamValueExist(sKey string) (string, bool) {
 
 // ParamAsInt
 func ParamAsInt(sKey string, def int) int {
-	v, ok := ParamValueExist(sKey)
-	if !ok {
+	v, ok := ParamExist(sKey)
+	if !ok || len(v) == 0 {
 		return def
 	}
 
 	return Esubstr2int(v, 0, 10)
 }
 
+// ParamSetDefault
+func ParamSet(sKey string, def string) {
+	lKey := strings.ToLower(sKey)
+	Xargs[lKey] = def
+}
+
+// ParamValueCheck
+func ParamValueCheck(sKey string, def string) {
+	v, ok := ParamExist(sKey)
+
+	if ok && len(v) == 0 {
+		ParamSet(sKey, def)
+	}
+}
+
+/*
 // ParamAsBool
 func ParamAsBool(sKey string, def bool) bool {
 	v, ok := ParamExist(sKey)
@@ -119,12 +135,6 @@ func ParamAsBool(sKey string, def bool) bool {
 	}
 
 	return v == "1"
-}
-
-// ParamSetDefault
-func ParamSet(sKey string, def string) {
-	lKey := strings.ToLower(sKey)
-	Xargs[lKey] = def
 }
 
 // ParamSetAsInt
@@ -149,6 +159,7 @@ func ParamSetAsBool(sKey string, def bool) {
 		Xargs[lKey] = strconv.Itoa(ii)
 	}
 }
+*/
 
 // Printparam
 func PrintParam() {
