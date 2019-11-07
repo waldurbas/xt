@@ -246,10 +246,11 @@ func Fatal(v ...interface{}) {
 }
 
 // LogFormat-Function
-func LogF(format string, v ...interface{}) {
+func LogF(format string, v ...interface{}) (ss string) {
 	s := fmt.Sprintf(format, v...)
 
-	_logx(s)
+	ss = _logx(s)
+	return
 }
 
 // Log-Function
@@ -259,7 +260,7 @@ func Log(v ...interface{}) {
 	_logx(s)
 }
 
-func _logx(s string) {
+func _logx(s string) (ss string) {
 	buf := []byte(s)
 	if buf[0] == '\n' {
 		fmt.Print("\n")
@@ -267,7 +268,6 @@ func _logx(s string) {
 	}
 
 	stime := STime(time.Now())
-
 	if len(s) > 0 {
 		fmt.Print(stime)
 		e := s[len(s)-1:]
@@ -275,12 +275,15 @@ func _logx(s string) {
 			s = s[:len(s)-1]
 		}
 		fmt.Print(s)
+		ss = stime + s
 
 		if e != "#" {
 			fmt.Print("\n")
 		}
 	}
 	_log(stime, s)
+
+	return
 }
 
 func _log(stime string, s string) {
