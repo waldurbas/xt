@@ -270,8 +270,15 @@ func _logx(s string) {
 
 	if len(s) > 0 {
 		fmt.Print(stime)
+		e := s[len(s)-1:]
+		if e == "#" {
+			s = s[:len(s)-1]
+		}
 		fmt.Print(s)
-		fmt.Print("\n")
+
+		if e != "#" {
+			fmt.Print("\n")
+		}
 	}
 	_log(stime, s)
 }
