@@ -18,6 +18,7 @@ import (
 var (
 	CurrentDir   string
 	LogDir       string
+	LogPfx       string
 	LogFileName  string
 	Xargs        map[string]string
 	xargsWithOut []string
@@ -121,45 +122,6 @@ func ParamValueCheck(sKey string, def string) {
 		ParamSet(sKey, def)
 	}
 }
-
-/*
-// ParamAsBool
-func ParamAsBool(sKey string, def bool) bool {
-	v, ok := ParamExist(sKey)
-	if !ok {
-		return def
-	}
-
-	if len(v) == 0 {
-		return true
-	}
-
-	return v == "1"
-}
-
-// ParamSetAsInt
-func ParamSetAsInt(sKey string, def int) {
-	_, ok := ParamValueExist(sKey)
-	if !ok {
-		lKey := strings.ToLower(sKey)
-		Xargs[lKey] = strconv.Itoa(def)
-	}
-}
-
-// ParamSetAsBool
-func ParamSetAsBool(sKey string, def bool) {
-	_, ok := ParamValueExist(sKey)
-	if !ok {
-		lKey := strings.ToLower(sKey)
-		ii := 0
-		if def {
-			ii = 1
-		}
-
-		Xargs[lKey] = strconv.Itoa(ii)
-	}
-}
-*/
 
 // Printparam
 func PrintParam() {
@@ -294,7 +256,7 @@ func _log(stime string, s string) {
 		CreateDir(LogFileName)
 	}
 
-	LogFileName = LogFileName + "/" + sti + ".log"
+	LogFileName = LogFileName + "/" + LogPfx + sti + ".log"
 
 	txt := "\n"
 	if len(s) > 0 {
@@ -694,4 +656,24 @@ func GetEnv(key, defval string) string {
 		return value
 	}
 	return defval
+}
+
+func GetVersion(ss string) string {
+
+	s := strings.Split(ss, ".")
+
+	if len(s) != 4 {
+		return "0.0.0.0"
+	}
+
+	var v [4]int
+
+	for i := 0; i < 4; i++ {
+		v[i] = Esubstr2int(s[i], 0, 4)
+	}
+
+	return strconv.Itoa(v[0]) + "." +
+		strconv.Itoa(v[1]) + "." +
+		strconv.Itoa(v[2]) + "." +
+		strconv.Itoa(v[3])
 }
