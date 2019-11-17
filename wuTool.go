@@ -95,7 +95,7 @@ func ParamExist(sKey string) (string, bool) {
 func ParamValueExist(sKey string) (string, bool) {
 	lKey := strings.ToLower(sKey)
 	v, ok := Xargs[lKey]
-	return v, ok && len(v) > 0
+	return lKey, ok && len(v) > 0
 }
 
 // ParamAsInt
