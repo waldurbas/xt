@@ -541,6 +541,8 @@ func Esubstr2int(s string, ix int, le int) int {
 
 		} else if b[i] == '-' {
 			f = -1
+		} else if b[i] == ';' {
+			break
 		}
 	}
 
