@@ -217,6 +217,15 @@ func Fatal(v ...interface{}) {
 	os.Exit(1)
 }
 
+// Fatal-Formatiert
+func FatalF(format string, v ...interface{}) {
+	s := fmt.Sprintf(format, v...)
+
+	_logx(s)
+
+	os.Exit(1)
+}
+
 // LogFormat-Function
 func LogF(format string, v ...interface{}) (ss string) {
 	s := fmt.Sprintf(format, v...)
@@ -288,6 +297,34 @@ func FTime() string {
 	return fmt.Sprintf("%d%02d%02d%02d%02d%02d",
 		t.Year(), t.Month(), t.Day(),
 		t.Hour(), t.Minute(), t.Second())
+}
+
+// TimeDifferenz
+func TimeDif(tA time.Time, tL time.Time) (xs int, hh int, mm int, ss int) {
+	dif := tL.Sub(tA)
+	hh = int(dif.Hours())
+	mm = int(dif.Minutes())
+	ss = int(dif.Seconds())
+	xs = ss
+
+	if hh > 0 {
+		mm -= hh * 60
+		ss -= hh * 3600
+	}
+
+	if mm > 0 {
+		ss -= mm * 60
+	}
+
+	return
+}
+
+// TimeDifferenz as String
+func STimeDif(tA time.Time, tL time.Time) string {
+
+	_, hh, mm, ss := TimeDif(tA, tL)
+	s := fmt.Sprintf("%.2d:%.2d:%.2d", hh, mm, ss)
+	return s
 }
 
 // loadfiles string
