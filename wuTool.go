@@ -36,22 +36,32 @@ func init() {
 	LogDir = CurrentDir + "/log"
 	Xargs = make(map[string]string)
 
+	var prev string
 	for _, v := range os.Args[1:] {
 		ss := strings.Split(v, "=")
 		if ss[0][0] == '-' {
+			prev = ""
 			sx := strings.ToLower(ss[0][1:])
 
 			if len(ss) > 1 {
 				Xargs[sx] = ss[1]
 			} else {
-				if sx[0] == 'q' {
-					Xargs["q"] = ss[0][2:]
-				} else {
+				prev = sx[:1]
+				switch prev {
+				case "q", "x":
+					Xargs[prev] = ss[0][2:]
+				default:
+					prev = sx
 					Xargs[sx] = ""
 				}
 			}
 		} else {
 			xargsWithOut = append(xargsWithOut, ss[0])
+			if len(prev) > 0 {
+				if len(Xargs[prev]) == 0 {
+					Xargs[prev] = ss[0]
+				}
+			}
 		}
 	}
 }
