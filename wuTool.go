@@ -494,7 +494,7 @@ func DeleteFile(path string) (err error) {
 
 // AppendFile
 func AppendFile(path string, data string) {
-	f, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	f, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -511,7 +511,7 @@ func WriteFile(path string, data string) (int, error) {
 	CreateFile(path)
 
 	// Open file using READ & WRITE permission.
-	var file, err = os.OpenFile(path, os.O_RDWR, 0644)
+	var file, err = os.OpenFile(path, os.O_RDWR, 0666)
 	if err != nil {
 		return 0, err
 	}
