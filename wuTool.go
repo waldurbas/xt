@@ -38,28 +38,26 @@ func init() {
 
 	var prev string
 	for _, v := range os.Args[1:] {
-		ss := strings.Split(v, "=")
-		if ss[0][0] == '-' {
-			prev = ""
-			sx := strings.ToLower(ss[0][1:])
-
-			if len(ss) > 1 {
-				Xargs[sx] = ss[1]
+		if v[0] == '-' {
+			prev = strings.ToLower(v[1:2])
+			if prev == "q" || prev == "x" {
+				Xargs[prev] = v[2:]
 			} else {
-				prev = sx[:1]
-				switch prev {
-				case "q", "x":
-					Xargs[prev] = ss[0][2:]
-				default:
-					prev = sx
-					Xargs[sx] = ""
+				ix := strings.Index(v, "=")
+				prev = ""
+				if ix > 0 {
+					prev = strings.ToLower(v[1:ix])
+					Xargs[prev] = v[ix+1:]
+				} else {
+					prev = strings.ToLower(v[1:])
+					Xargs[prev] = ""
 				}
 			}
 		} else {
-			xargsWithOut = append(xargsWithOut, ss[0])
+			xargsWithOut = append(xargsWithOut, v)
 			if len(prev) > 0 {
 				if len(Xargs[prev]) == 0 {
-					Xargs[prev] = ss[0]
+					Xargs[prev] = v
 				}
 			}
 		}
@@ -234,6 +232,14 @@ func LogF(format string, v ...interface{}) (ss string) {
 	return
 }
 
+// PrintStderr
+func PrintStdErr(format string, v ...interface{}) (ss string) {
+	ss = fmt.Sprintf(format, v...)
+	fmt.Fprint(os.Stderr, ss)
+
+	return
+}
+
 // Log-Function
 func Log(v ...interface{}) {
 	s := fmt.Sprint(v...)
@@ -244,22 +250,22 @@ func Log(v ...interface{}) {
 func _logx(s string) (ss string) {
 	buf := []byte(s)
 	if buf[0] == '\n' {
-		fmt.Print("\n")
+		fmt.Fprint(os.Stderr, "\n")
 		s = s[1:len(s)]
 	}
 
 	stime := STime(time.Now())
 	if len(s) > 0 {
-		fmt.Print(stime)
+		fmt.Fprint(os.Stderr, stime)
 		e := s[len(s)-1:]
 		if e == "#" {
 			s = s[:len(s)-1]
 		}
-		fmt.Print(s)
+		fmt.Fprint(os.Stderr, s)
 		ss = stime + s
 
 		if e != "#" {
-			fmt.Print("\n")
+			fmt.Fprint(os.Stderr, "\n")
 		}
 	}
 	_log(stime, s)
