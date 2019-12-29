@@ -433,8 +433,23 @@ func CreateDir(dirName string) bool {
 
 	if os.IsNotExist(err) {
 		fmt.Println("CreateDir:", dirName)
-		errDir := os.MkdirAll(dirName, 0755)
-		if errDir != nil {
+
+		err = nil
+		sDirs := strings.Split(dirName, "/")
+		cDir := ""
+		for i := 1; err == nil && i < len(sDirs); i++ {
+			cDir = cDir + "/" + sDirs[i]
+			_, e := os.Stat(cDir)
+			if e != nil {
+				err = os.Mkdir(cDir, 0777)
+				if err == nil {
+					os.Chmod(cDir, 0777)
+				}
+			}
+		}
+
+		//		err = os.MkdirAll(dirName, 0777)
+		if err != nil {
 			panic(err)
 		}
 		return true
@@ -503,7 +518,10 @@ func AppendFile(path string, data string) {
 	f, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
 		fmt.Println(err)
+		return
 	}
+
+	os.Chmod(path, 0666)
 	defer f.Close()
 
 	if _, err := f.WriteString(data); err != nil {
