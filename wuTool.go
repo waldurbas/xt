@@ -69,6 +69,15 @@ func init() {
 	}
 }
 
+// SetLog #
+func SetLog(logPfx string, logDir string) {
+	if len(logDir) > 0 {
+		Global.logDir = logDir
+	}
+
+	Global.logPfx = logPfx
+}
+
 // Param #
 func Param(ix int, def string) string {
 	if ix >= len(Global.xargsWithOut) {
@@ -276,15 +285,6 @@ func _logx(s string) (ss string) {
 	_log(stime, s)
 
 	return
-}
-
-// SetLog #
-func SetLog(logPfx string, logDir string) {
-	if len(logDir) > 0 {
-		Global.logDir = logDir
-	}
-
-	Global.logPfx = logPfx
 }
 
 func _log(stime string, s string) {
