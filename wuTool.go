@@ -15,98 +15,103 @@ import (
 	"time"
 )
 
-var (
+// GlobalData #
+type GlobalData struct {
 	CurrentDir   string
-	LogDir       string
-	LogPfx       string
-	LogFileName  string
 	Xargs        map[string]string
 	xargsWithOut []string
-)
+
+	logDir      string
+	logPfx      string
+	logFileName string
+}
+
+// Global #
+var Global GlobalData
 
 // init: wird automatisch aufgerufen
 func init() {
-	CurrentDir = "."
+	Global.CurrentDir = "."
 	dir, err := os.Getwd()
 
 	if err == nil {
-		CurrentDir = dir
+		Global.CurrentDir = dir
 	}
 
-	LogDir = CurrentDir + "/log"
-	Xargs = make(map[string]string)
+	Global.logDir = Global.CurrentDir + "/log"
+	Global.Xargs = make(map[string]string)
 
 	var prev string
 	for _, v := range os.Args[1:] {
 		if v[0] == '-' {
 			prev = strings.ToLower(v[1:2])
 			if prev == "q" || prev == "x" {
-				Xargs[prev] = v[2:]
+				Global.Xargs[prev] = v[2:]
 			} else {
 				ix := strings.Index(v, "=")
 				prev = ""
 				if ix > 0 {
 					prev = strings.ToLower(v[1:ix])
-					Xargs[prev] = v[ix+1:]
+					Global.Xargs[prev] = v[ix+1:]
 				} else {
 					prev = strings.ToLower(v[1:])
-					Xargs[prev] = ""
+					Global.Xargs[prev] = ""
 				}
 			}
 		} else {
-			xargsWithOut = append(xargsWithOut, v)
+			Global.xargsWithOut = append(Global.xargsWithOut, v)
 			if len(prev) > 0 {
-				if len(Xargs[prev]) == 0 {
-					Xargs[prev] = v
+				if len(Global.Xargs[prev]) == 0 {
+					Global.Xargs[prev] = v
 				}
 			}
 		}
 	}
 }
 
-// Param
+// Param #
 func Param(ix int, def string) string {
-	if ix >= len(xargsWithOut) {
+	if ix >= len(Global.xargsWithOut) {
 		return def
 	}
 
-	return xargsWithOut[ix]
+	return Global.xargsWithOut[ix]
 }
 
-// ParamValue
+// ParamValue #
 func ParamValue(sKey string, def string) string {
 	lKey, ok := ParamValueExist(sKey)
 	if !ok {
 		return def
 	}
 
-	return Xargs[lKey]
+	return Global.Xargs[lKey]
 }
 
-// ParamKeyExist
+// ParamKeyExist #
 func ParamKeyExist(sKey string) bool {
 	_, ok := ParamExist(sKey)
 	return ok
 }
 
-// ParamExist
+// ParamExist #
 func ParamExist(sKey string) (string, bool) {
 	lKey := strings.ToLower(sKey)
 
-	v, ok := Xargs[lKey]
+	v, ok := Global.Xargs[lKey]
 	//	fmt.Println("ParamExist.Key: ", uKey, ", ok: ", ok, ", v: ", v)
 
 	return v, ok
 }
 
-// ParamValueExist
+// ParamValueExist #
 func ParamValueExist(sKey string) (string, bool) {
 	lKey := strings.ToLower(sKey)
-	v, ok := Xargs[lKey]
+	v, ok := Global.Xargs[lKey]
 	return lKey, ok && len(v) > 0
 }
 
-// ParamAsInt
+// ParamAsInt #
 func ParamAsInt(sKey string, def int) int {
 	v, ok := ParamExist(sKey)
 	if !ok || len(v) == 0 {
@@ -116,13 +121,13 @@ func ParamAsInt(sKey string, def int) int {
 	return Esubstr2int(v, 0, 10)
 }
 
-// ParamSetDefault
+// ParamSet #
 func ParamSet(sKey string, def string) {
 	lKey := strings.ToLower(sKey)
-	Xargs[lKey] = def
+	Global.Xargs[lKey] = def
 }
 
-// ParamValueCheck
+// ParamValueCheck #
 func ParamValueCheck(sKey string, def string) {
 	v, ok := ParamExist(sKey)
 
@@ -131,28 +136,28 @@ func ParamValueCheck(sKey string, def string) {
 	}
 }
 
-// Printparam
+// PrintParam #
 func PrintParam() {
 	fmt.Println("\n--> xParams:")
-	for i, v := range xargsWithOut {
+	for i, v := range Global.xargsWithOut {
 		fmt.Printf("%d. [%s]\n", i, v)
 	}
 
 	fmt.Println("----------------------------")
 
 	var sk []string
-	for k := range Xargs {
+	for k := range Global.Xargs {
 		sk = append(sk, k)
 	}
 	sort.Strings(sk)
 
 	for _, k := range sk {
-		fmt.Printf("%-16.16s: [%s]\n", k, Xargs[k])
+		fmt.Printf("%-16.16s: [%s]\n", k, Global.Xargs[k])
 	}
-	fmt.Println("\n")
+	fmt.Print("\n\n")
 }
 
-// PermitWeekDay
+// PermitWeekDay for
 func PermitWeekDay(t time.Time, sDays []string) bool {
 	ih := int(t.Weekday())
 	ok := false
@@ -178,7 +183,7 @@ func PermitWeekDay(t time.Time, sDays []string) bool {
 	return ok
 }
 
-// PermitHour: array: [ "12:00-18:00","1400-2200"]
+// PermitHour # array: [ "12:00-18:00","1400-2200"]
 func PermitHour(t time.Time, sh []string) bool {
 	tt := t.Hour()*100 + t.Minute()
 	ok := false
@@ -202,7 +207,7 @@ func PermitHour(t time.Time, sh []string) bool {
 	return ok
 }
 
-// Fatal-Error
+// Fatal #Error
 func Fatal(v ...interface{}) {
 	stime := STime(time.Now())
 	fmt.Printf("\n%s", stime)
@@ -215,7 +220,7 @@ func Fatal(v ...interface{}) {
 	os.Exit(1)
 }
 
-// Fatal-Formatiert
+// FatalF #Formatiert
 func FatalF(format string, v ...interface{}) {
 	s := fmt.Sprintf(format, v...)
 
@@ -224,7 +229,7 @@ func FatalF(format string, v ...interface{}) {
 	os.Exit(1)
 }
 
-// LogFormat-Function
+// LogF #Format-Function
 func LogF(format string, v ...interface{}) (ss string) {
 	s := fmt.Sprintf(format, v...)
 
@@ -232,7 +237,7 @@ func LogF(format string, v ...interface{}) (ss string) {
 	return
 }
 
-// PrintStderr
+// PrintStdErr #
 func PrintStdErr(format string, v ...interface{}) (ss string) {
 	ss = fmt.Sprintf(format, v...)
 	fmt.Fprint(os.Stderr, ss)
@@ -240,7 +245,7 @@ func PrintStdErr(format string, v ...interface{}) (ss string) {
 	return
 }
 
-// Log-Function
+// Log #Function
 func Log(v ...interface{}) {
 	s := fmt.Sprint(v...)
 
@@ -273,31 +278,40 @@ func _logx(s string) (ss string) {
 	return
 }
 
+// SetLog #
+func SetLog(logPfx string, logDir string) {
+	if len(logDir) > 0 {
+		Global.logDir = logDir
+	}
+
+	Global.logPfx = logPfx
+}
+
 func _log(stime string, s string) {
 	sti := FTime()[0:8]
 
-	LogFileName = LogDir + "/" + sti[0:4] + "/" + sti[4:6]
-	if !DirExists(LogFileName) {
-		CreateDir(LogFileName)
+	Global.logFileName = Global.logDir + "/" + sti[0:4] + "/" + sti[4:6]
+	if !DirExists(Global.logFileName) {
+		CreateDir(Global.logFileName)
 	}
 
-	LogFileName = LogFileName + "/" + LogPfx + sti + ".log"
+	Global.logFileName = Global.logFileName + "/" + Global.logPfx + sti + ".log"
 
 	txt := "\n"
 	if len(s) > 0 {
 		txt = txt + stime + " " + s
 	}
-	AppendFile(LogFileName, txt)
+	AppendFile(Global.logFileName, txt)
 }
 
-// Time asString for Log
+// STime  #asString for Log
 func STime(t time.Time) string {
 	return fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d ",
 		t.Year(), t.Month(), t.Day(),
 		t.Hour(), t.Minute(), t.Second())
 }
 
-// Time asString for FileName
+// FTime #asString for FileName
 func FTime() string {
 	t := time.Now()
 	return fmt.Sprintf("%d%02d%02d%02d%02d%02d",
@@ -305,7 +319,7 @@ func FTime() string {
 		t.Hour(), t.Minute(), t.Second())
 }
 
-// TimeDifferenz
+// TimeDif #
 func TimeDif(tA time.Time, tL time.Time) (xs int, hh int, mm int, ss int) {
 	dif := tL.Sub(tA)
 	hh = int(dif.Hours())
@@ -325,7 +339,7 @@ func TimeDif(tA time.Time, tL time.Time) (xs int, hh int, mm int, ss int) {
 	return
 }
 
-// TimeDifferenz as String
+// STimeDif #Differenz as String
 func STimeDif(tA time.Time, tL time.Time) string {
 
 	_, hh, mm, ss := TimeDif(tA, tL)
@@ -333,7 +347,7 @@ func STimeDif(tA time.Time, tL time.Time) string {
 	return s
 }
 
-// loadfiles string
+// LoadFiles #string
 func LoadFiles(path, match string) (files []string, err error) {
 
 	d, err := os.Open(path)
@@ -389,7 +403,7 @@ func Gzip(data *[]byte) string {
 	return str
 }
 
-// GzipFile
+// GzipFile #
 func GzipFile(fileName string) (bool, error) {
 	rawfile, err := os.Open(fileName)
 
@@ -427,7 +441,7 @@ func GzipFile(fileName string) (bool, error) {
 
 }
 
-// Create Directory
+// CreateDir #
 func CreateDir(dirName string) bool {
 	src, err := os.Stat(dirName)
 
@@ -463,7 +477,7 @@ func CreateDir(dirName string) bool {
 	return false
 }
 
-// DirExists
+// DirExists #
 func DirExists(path string) bool {
 	f, err := os.Stat(path)
 
@@ -474,7 +488,7 @@ func DirExists(path string) bool {
 	return f.IsDir()
 }
 
-// FileExists
+// FileExists #
 func FileExists(filename string) bool {
 	if _, err := os.Stat(filename); os.IsNotExist(err) {
 		return false
@@ -490,7 +504,7 @@ func dropCR(data []byte) []byte {
 	return data
 }
 
-// Create File
+// CreateFile #
 func CreateFile(path string) (err error) {
 	// check if file exists
 	_, err = os.Stat(path)
@@ -506,14 +520,14 @@ func CreateFile(path string) (err error) {
 	return
 }
 
-// DeleteFile
+// DeleteFile #
 func DeleteFile(path string) (err error) {
 	// delete file
 	err = os.Remove(path)
 	return
 }
 
-// AppendFile
+// AppendFile #
 func AppendFile(path string, data string) {
 	f, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
@@ -529,7 +543,7 @@ func AppendFile(path string, data string) {
 	}
 }
 
-// WriteFile
+// WriteFile #
 func WriteFile(path string, data string) (int, error) {
 	DeleteFile(path)
 	CreateFile(path)
@@ -557,7 +571,7 @@ func WriteFile(path string, data string) (int, error) {
 	return n, nil
 }
 
-// wenn TeilString gefunden, den Rest liefern
+// StrStr #wenn TeilString gefunden, den Rest liefern
 func StrStr(fStr string, needle string) string {
 	if needle == "" {
 		return ""
@@ -569,7 +583,7 @@ func StrStr(fStr string, needle string) string {
 	return fStr[idx:]
 }
 
-// StrnIcmp
+// StrnIcmp #
 func StrnIcmp(a, b string, le int) bool {
 	l1 := len(a)
 	l2 := len(b)
@@ -581,12 +595,12 @@ func StrnIcmp(a, b string, le int) bool {
 	return strings.EqualFold(a[0:le], b[0:le])
 }
 
-// String Ignore Compare
+// StrIcmp #String Ignore Compare
 func StrIcmp(a, b string) bool {
 	return strings.EqualFold(a, b)
 }
 
-// string-compare
+// StrComp #string-compare
 func StrComp(a, b string) int {
 	if a == b {
 		return 0
@@ -599,7 +613,7 @@ func StrComp(a, b string) int {
 	return 1
 }
 
-// Esubstr2int
+// Esubstr2int #
 func Esubstr2int(s string, ix int, le int) int {
 	b := []byte(s[ix:])
 	l := len(s)
@@ -620,7 +634,7 @@ func Esubstr2int(s string, ix int, le int) int {
 	return z * f
 }
 
-// eSubStr
+// Esubstr #
 func Esubstr(s string, ix int, le int) string {
 	l := len(s)
 
@@ -636,7 +650,7 @@ func Esubstr(s string, ix int, le int) string {
 	return b
 }
 
-// Format Integer mit Tausend Points
+// FormatInt64 #Format Integer mit Tausend Points
 func FormatInt64(n int64) string {
 	in := strconv.FormatInt(n, 10)
 	out := make([]byte, len(in)+(len(in)-2+int(in[0]/'0'))/3)
@@ -656,18 +670,18 @@ func FormatInt64(n int64) string {
 	}
 }
 
-// Format Integer mit Tausend Points
+// FormatInt #Format Integer mit Tausend Points
 func FormatInt(n int) string {
 	return FormatInt64(int64(n))
 }
 
-// ISO8859_1 to UTF8
+// ToUTF8 #ISO8859_1 to UTF8
 func ToUTF8(s string) string {
 
-	iso8859_1_buf := []byte(s)
+	iso8859Buf := []byte(s)
 
-	buf := make([]rune, len(iso8859_1_buf))
-	for i, b := range iso8859_1_buf {
+	buf := make([]rune, len(iso8859Buf))
+	for i, b := range iso8859Buf {
 		if b == 0x80 {
 			buf[i] = '€'
 		} else {
@@ -677,7 +691,7 @@ func ToUTF8(s string) string {
 	return string(buf)
 }
 
-// UTF8 to ANSI
+// ToAnsi #UTF8 to ANSI
 func ToAnsi(buf *[]byte) []byte {
 	ansiBuf := make([]byte, len(*buf))
 
@@ -710,7 +724,7 @@ func ToAnsi(buf *[]byte) []byte {
 	return ansiBuf[:a]
 }
 
-// SHex
+// SHex #
 func SHex(buf *[]byte) string {
 
 	out := ""
@@ -723,7 +737,7 @@ func SHex(buf *[]byte) string {
 	return out
 }
 
-// GetEnviron
+// GetEnv #
 func GetEnv(key, defval string) string {
 	if value, ok := os.LookupEnv(key); ok {
 		return value
@@ -731,6 +745,7 @@ func GetEnv(key, defval string) string {
 	return defval
 }
 
+// GetVersion #
 func GetVersion(ss string) string {
 
 	s := strings.Split(ss, ".")
