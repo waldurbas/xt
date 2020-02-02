@@ -105,6 +105,11 @@ func (f *DownloadFile) Download(toFile string) error {
 		return err
 	}
 
+	return f.SetFileTime(toFile)
+}
+
+// SetFileTime #
+func (f *DownloadFile) SetFileTime(toFile string) error {
 	// setFileTime: change both atime and mtime to currenttime
 	return os.Chtimes(toFile, f.Web.Time, f.Web.Time)
 }
