@@ -618,7 +618,7 @@ func StrComp(a, b string) int {
 // Esubstr2int #
 func Esubstr2int(s string, ix int, le int) int {
 	b := []byte(s[ix:])
-	l := len(s)
+	l := len(s)-ix
 	z := 0
 	f := 1
 
