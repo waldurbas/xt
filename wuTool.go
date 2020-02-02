@@ -17,9 +17,10 @@ import (
 
 // GlobalData #
 type GlobalData struct {
-	CurrentDir   string
-	Xargs        map[string]string
-	xargsWithOut []string
+	CurrentDir    string
+	PathSeparator string
+	Xargs         map[string]string
+	xargsWithOut  []string
 
 	logDir      string
 	logPfx      string
@@ -31,14 +32,16 @@ var Global GlobalData
 
 // init: wird automatisch aufgerufen
 func init() {
+	Global.PathSeparator = string(os.PathSeparator)
 	Global.CurrentDir = "."
+
 	dir, err := os.Getwd()
 
 	if err == nil {
 		Global.CurrentDir = dir
 	}
 
-	Global.logDir = Global.CurrentDir + "/log"
+	Global.logDir = Global.CurrentDir + Global.PathSeparator + "log"
 	Global.Xargs = make(map[string]string)
 
 	var prev string
@@ -290,12 +293,12 @@ func _logx(s string) (ss string) {
 func _log(stime string, s string) {
 	sti := FTime()[0:8]
 
-	Global.logFileName = Global.logDir + "/" + sti[0:4] + "/" + sti[4:6]
+	Global.logFileName = Global.logDir + Global.PathSeparator + sti[0:4] + Global.PathSeparator + sti[4:6]
 	if !DirExists(Global.logFileName) {
 		CreateDir(Global.logFileName)
 	}
 
-	Global.logFileName = Global.logFileName + "/" + Global.logPfx + sti + ".log"
+	Global.logFileName = Global.logFileName + Global.PathSeparator + Global.logPfx + sti + ".log"
 
 	txt := "\n"
 	if len(s) > 0 {
@@ -449,10 +452,10 @@ func CreateDir(dirName string) bool {
 		fmt.Println("CreateDir:", dirName)
 
 		err = nil
-		sDirs := strings.Split(dirName, "/")
+		sDirs := strings.Split(dirName, Global.PathSeparator)
 		cDir := ""
 		for i := 1; err == nil && i < len(sDirs); i++ {
-			cDir = cDir + "/" + sDirs[i]
+			cDir = cDir + Global.PathSeparator + sDirs[i]
 			_, e := os.Stat(cDir)
 			if e != nil {
 				err = os.Mkdir(cDir, 0777)
@@ -462,7 +465,6 @@ func CreateDir(dirName string) bool {
 			}
 		}
 
-		//		err = os.MkdirAll(dirName, 0777)
 		if err != nil {
 			panic(err)
 		}
