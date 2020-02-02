@@ -454,10 +454,6 @@ func GunzipFile(fromFile string, toFile string) error {
 		return err
 	}
 
-	defer func() {
-		os.Remove(fromFile)
-	}()
-
 	reader, err := gzip.NewReader(gzipfile)
 	if err != nil {
 		return err
