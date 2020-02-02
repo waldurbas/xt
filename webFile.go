@@ -17,19 +17,19 @@ type WriteCounter struct {
 	Total uint64
 }
 
-// XFile #
-type XFile struct {
-	FileName string
-	Size     uint64
-	Time     time.Time
+// XFileInfo #
+type XFileInfo struct {
+	Size uint64
+	Time time.Time
 }
 
 // DownloadFile #
 type DownloadFile struct {
-	WebFile XFile
-	LocFile XFile
-	Changed bool
-	parent  *DownloadFiles
+	FileName string
+	Web      XFileInfo
+	Loc      XFileInfo
+	Changed  bool
+	parent   *DownloadFiles
 }
 
 // DownloadFiles #
@@ -60,10 +60,10 @@ func GetDownloadFiles(url string) (*DownloadFiles, error) {
 			size, _ := strconv.Atoi(items[1])
 			t, _ := time.Parse("2006-01-02 15:04:05", items[2])
 
-			wfile := XFile{FileName: items[0], Size: uint64(size), Time: t}
-			lfile := XFile{}
+			wInfo := XFileInfo{Size: uint64(size), Time: t}
+			lInfo := XFileInfo{}
 
-			file := DownloadFile{WebFile: wfile, LocFile: lfile, parent: &downFiles}
+			file := DownloadFile{FileName: items[0], Web: wInfo, Loc: lInfo, parent: &downFiles}
 			downFiles.List = append(downFiles.List, file)
 		}
 	}
@@ -83,7 +83,7 @@ func (f *DownloadFile) Download(toFile string) error {
 	defer out.Close()
 
 	// Get the data
-	resp, err := http.Get(f.parent.url + "/" + f.WebFile.FileName)
+	resp, err := http.Get(f.parent.url + "/" + f.FileName + ".gz")
 	if err != nil {
 		return err
 	}
@@ -106,32 +106,30 @@ func (f *DownloadFile) Download(toFile string) error {
 	}
 
 	// setFileTime: change both atime and mtime to currenttime
-	return os.Chtimes(toFile, f.WebFile.Time, f.WebFile.Time)
+	return os.Chtimes(toFile, f.Web.Time, f.Web.Time)
 }
 
-// GetLocalFileInfo #
-func (flist *DownloadFiles) GetLocalFileInfo(fname string) (*DownloadFile, error) {
-	lowerFile := strings.ToLower(fname)
+// GetFileInfo #
+func (flist *DownloadFiles) GetFileInfo(FileName string) (*DownloadFile, error) {
+	lowerFile := strings.ToLower(FileName)
 
 	for _, f := range flist.List {
-		wFile := strings.ToLower(f.WebFile.FileName)
+		wFile := strings.ToLower(f.FileName)
 
 		if wFile == lowerFile {
-			f.LocFile.FileName = f.WebFile.FileName
-
-			st, err := os.Stat(f.LocFile.FileName)
+			st, err := os.Stat(f.FileName)
 			if err != nil {
-				f.LocFile.Time = f.WebFile.Time
-				f.LocFile.Size = 0
+				f.Loc.Time = f.Web.Time
+				f.Loc.Size = 0
 			} else {
 				loc, _ := time.LoadLocation("UTC")
-				f.LocFile.Time = st.ModTime().In(loc)
-				f.LocFile.Size = uint64(st.Size())
+				f.Loc.Time = st.ModTime().In(loc)
+				f.Loc.Size = uint64(st.Size())
 			}
 
-			f.Changed = f.WebFile.Size != f.LocFile.Size || (f.WebFile.Time != f.LocFile.Time)
-			//			fmt.Printf("webFile: %d %v\n", f.WebFile.Size, f.WebFile.Time)
-			//			fmt.Printf("locFile: %d %v\n", f.LocFile.Size, f.LocFile.Time)
+			f.Changed = f.Web.Size != f.Loc.Size || (f.Web.Time != f.Loc.Time)
+			//			fmt.Printf("webFile: %d %v\n", f.Web.Size, f.Web.Time)
+			//			fmt.Printf("locFile: %d %v\n", f.Loc.Size, f.Loc.Time)
 			return &f, nil
 		}
 	}

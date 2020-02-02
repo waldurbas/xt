@@ -6,6 +6,7 @@ import (
 	"compress/gzip"
 	"encoding/base64"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"math"
 	"os"
@@ -443,6 +444,33 @@ func GzipFile(fileName string) (bool, error) {
 
 	return true, nil
 
+}
+
+// GunzipFile #
+func GunzipFile(fromFile string, toFile string) error {
+	gzipfile, err := os.Open(fromFile)
+
+	if err != nil {
+		return err
+	}
+
+	reader, err := gzip.NewReader(gzipfile)
+	if err != nil {
+		return err
+	}
+	defer reader.Close()
+
+	writer, err := os.Create(toFile)
+
+	if err != nil {
+		return err
+	}
+	defer writer.Close()
+
+	if _, err = io.Copy(writer, reader); err != nil {
+		return err
+	}
+	return nil
 }
 
 // CreateDir #
