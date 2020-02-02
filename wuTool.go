@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"os"
 	"path/filepath"
 	"sort"
@@ -618,7 +619,7 @@ func StrComp(a, b string) int {
 // Esubstr2int #
 func Esubstr2int(s string, ix int, le int) int {
 	b := []byte(s[ix:])
-	l := len(s)-ix
+	l := len(s) - ix
 	z := 0
 	f := 1
 
@@ -675,6 +676,22 @@ func FormatInt64(n int64) string {
 // FormatInt #Format Integer mit Tausend Points
 func FormatInt(n int) string {
 	return FormatInt64(int64(n))
+}
+
+// ReadableBytes #
+func ReadableBytes(n uint64) string {
+	sizes := []string{"B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"}
+
+	b := float64(1024)
+	e := math.Floor(math.Log(float64(n)) / math.Log(b))
+	sfx := sizes[int(e)]
+	v := float64(n) / math.Pow(b, math.Floor(e))
+	f := "%.0f"
+	if v < 10 {
+		f = "%.1f"
+	}
+
+	return fmt.Sprintf(f+" %s", v, sfx)
 }
 
 // ToUTF8 #ISO8859_1 to UTF8
