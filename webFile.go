@@ -133,8 +133,8 @@ func (flist *DownloadFiles) GetFileInfo(FileName string) (*DownloadFile, error) 
 			}
 
 			f.Changed = f.Web.Size != f.Loc.Size || (f.Web.Time != f.Loc.Time)
-			//			fmt.Printf("webFile: %d %v\n", f.Web.Size, f.Web.Time)
-			//			fmt.Printf("locFile: %d %v\n", f.Loc.Size, f.Loc.Time)
+			fmt.Printf("webFile: %d %v\n", f.Web.Size, f.Web.Time)
+			fmt.Printf("locFile: %d %v\n", f.Loc.Size, f.Loc.Time)
 			return &f, nil
 		}
 	}
