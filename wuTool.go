@@ -22,6 +22,7 @@ type GlobalData struct {
 	CurrentDir    string
 	PathSeparator string
 	Xargs         map[string]string
+	Debug         int
 	xargsWithOut  []string
 
 	logDir      string
@@ -72,6 +73,9 @@ func init() {
 			}
 		}
 	}
+
+	ParamValueCheck("debug", "1")
+	Global.Debug = ParamAsInt("debug", 0)
 }
 
 // SetLog #

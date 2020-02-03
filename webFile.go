@@ -76,7 +76,10 @@ func (f *DownloadFile) Download(toFile string) error {
 
 	// Create the file with .tmp extension, so that we won't overwrite a
 	// file until it's downloaded fully
-	out, err := os.Create(toFile + ".tmp")
+	tmpFile := toFile + ".tmp"
+	os.Remove(tmpFile)
+
+	out, err := os.Create(tmpFile)
 	if err != nil {
 		return err
 	}
@@ -98,9 +101,11 @@ func (f *DownloadFile) Download(toFile string) error {
 
 	// The progress use the same line so print a new line once it's finished downloading
 	fmt.Println()
+	out.Close()
 
 	// Rename the tmp file back to the original file
-	err = os.Rename(toFile+".tmp", toFile)
+	time.Sleep(2 * time.Second)
+	err = os.Rename(tmpFile, toFile)
 	if err != nil {
 		return err
 	}
@@ -122,19 +127,25 @@ func (flist *DownloadFiles) GetFileInfo(FileName string) (*DownloadFile, error) 
 		wFile := strings.ToLower(f.FileName)
 
 		if wFile == lowerFile {
+			loc, _ := time.LoadLocation("UTC")
+
 			st, err := os.Stat(f.FileName)
 			if err != nil {
 				f.Loc.Time = f.Web.Time
 				f.Loc.Size = 0
 			} else {
-				loc, _ := time.LoadLocation("UTC")
 				f.Loc.Time = st.ModTime().In(loc)
 				f.Loc.Size = uint64(st.Size())
 			}
 
-			f.Changed = f.Web.Size != f.Loc.Size || (f.Web.Time != f.Loc.Time)
-			fmt.Printf("webFile: %d %v\n", f.Web.Size, f.Web.Time)
-			fmt.Printf("locFile: %d %v\n", f.Loc.Size, f.Loc.Time)
+			//			dif := f.Loc.Time.Sub(f.Web.Time)
+			f.Changed = (f.Web.Size != f.Loc.Size) || (f.Loc.Time != f.Web.Time)
+
+			if Global.Debug > 0 {
+				fmt.Printf("webFile: %d %v\n", f.Web.Size, f.Web.Time)
+				fmt.Printf("locFile: %d %v\n", f.Loc.Size, f.Loc.Time)
+			}
+
 			return &f, nil
 		}
 	}
