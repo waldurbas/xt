@@ -12,6 +12,7 @@ package xt
 
 import (
 	"bufio"
+	"errors"
 	"os"
 	"time"
 )
@@ -26,16 +27,20 @@ type XFile struct {
 
 // LoadFile #
 func LoadFile(sfile string) (*XFile, error) {
+	stat, err := os.Stat(sfile)
+	if os.IsNotExist(err) {
+		return nil, err
+	}
+
+	if stat.IsDir() {
+		return nil, errors.New("is not a file")
+	}
+
 	file, err := os.Open(sfile)
 	if err != nil {
 		return nil, err
 	}
 	defer file.Close()
-
-	stat, err := file.Stat()
-	if err != nil {
-		return nil, err
-	}
 
 	var cf XFile
 

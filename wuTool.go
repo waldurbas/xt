@@ -535,10 +535,11 @@ func DirExists(path string) bool {
 
 // FileExists #
 func FileExists(filename string) bool {
-	if _, err := os.Stat(filename); os.IsNotExist(err) {
+	f, err := os.Stat(filename)
+	if os.IsNotExist(err) {
 		return false
 	}
-	return true
+	return !f.IsDir()
 }
 
 // dropCR drops a terminal \r from the data.
