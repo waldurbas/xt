@@ -1,5 +1,15 @@
 package xt
 
+// ----------------------------------------------------------------------------------
+// webFile.go for Go's xt package
+// Copyright 2019,2020 by Waldemar Urbas
+//-----------------------------------------------------------------------------------
+// This Source Code Form is subject to the terms of the 'MIT License'
+// A short and simple permissive license with conditions only requiring
+// preservation of copyright and license notices.  Licensed works, modifications,
+// and larger works may be distributed under different terms and without source code.
+// ----------------------------------------------------------------------------------
+
 import (
 	"errors"
 	"fmt"
@@ -197,14 +207,7 @@ func (wc *WriteCounter) Write(p []byte) (int, error) {
 	return n, nil
 }
 
-// PrintProgress prints the progress of a file write
+// PrintProgress #prints the progress of a file write
 func (wc WriteCounter) PrintProgress() {
-	// Clear the line by using a character return to go back to the start and remove
-	// the remaining characters by filling it with spaces
-	fmt.Printf("\r%s", strings.Repeat(" ", 50))
-
-	// Return again and print current status of download
-	// We use the humanize package to print the bytes in a meaningful way (e.g. 10 MB)
-	//fmt.Printf("\rDownloading... %d complete", wc.Total)
-	fmt.Printf("\rDownloading... %s complete", ReadableBytes(wc.Total))
+	fmt.Printf("\r%s\rDownloading... %s complete", strings.Repeat(" ", 50), ReadableBytes(wc.Total))
 }

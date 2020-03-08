@@ -1,5 +1,15 @@
 package xt
 
+// ----------------------------------------------------------------------------------
+// wuTool.go for Go's xt package
+// Copyright 2019,2020 by Waldemar Urbas
+//-----------------------------------------------------------------------------------
+// This Source Code Form is subject to the terms of the 'MIT License'
+// A short and simple permissive license with conditions only requiring
+// preservation of copyright and license notices.  Licensed works, modifications,
+// and larger works may be distributed under different terms and without source code.
+// ----------------------------------------------------------------------------------
+
 import (
 	"bufio"
 	"bytes"
