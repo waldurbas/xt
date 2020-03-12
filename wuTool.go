@@ -422,6 +422,28 @@ func Gzip(data *[]byte) string {
 	return str
 }
 
+// Gunzip #
+func Gunzip(data *string, dst *[]byte) error {
+	src, err := base64.StdEncoding.DecodeString(*data)
+	if err != nil {
+		return err
+	}
+
+	gr, err := gzip.NewReader(bytes.NewBuffer(src))
+	if err != nil {
+		return err
+	}
+
+	defer gr.Close()
+
+	*dst, err = ioutil.ReadAll(gr)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // GzipFile #
 func GzipFile(fileName string) (bool, error) {
 	rawfile, err := os.Open(fileName)
