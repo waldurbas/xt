@@ -11,13 +11,7 @@ package xt
 // ----------------------------------------------------------------------------------
 
 import (
-	"bufio"
-	"bytes"
-	"compress/gzip"
-	"encoding/base64"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"math"
 	"os"
 	"path/filepath"

@@ -15,16 +15,9 @@ import (
 	"bytes"
 	"compress/gzip"
 	"encoding/base64"
-	"fmt"
 	"io"
 	"io/ioutil"
-	"math"
 	"os"
-	"path/filepath"
-	"sort"
-	"strconv"
-	"strings"
-	"time"
 )
 
 // Gzip string

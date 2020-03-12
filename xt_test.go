@@ -49,3 +49,14 @@ func Test_Encode(t *testing.T) {
 		}
 	}
 }
+
+func Test_Gzip(t *testing.T) {
+	data := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 22, 87, 45}
+	s := xt.Gzip(&data)
+	log.Println("gzip.bytes", data)
+	log.Println("gzip.bytes.coded", s)
+
+	var dd []byte
+	xt.Gunzip(&s, &dd)
+	log.Println("gzip.bytes.decoded", dd)
+}
