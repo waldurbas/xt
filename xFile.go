@@ -12,6 +12,8 @@ package xt
 
 import (
 	"bufio"
+	"crypto/md5"
+	"encoding/hex"
 	"errors"
 	"os"
 	"time"
@@ -22,6 +24,8 @@ type XFile struct {
 	FileName string
 	FileSize int64
 	FileTime time.Time
+	CheckSum string
+	FileType string
 	FileData []byte
 }
 
@@ -44,9 +48,11 @@ func LoadFile(sfile string) (*XFile, error) {
 
 	var cf XFile
 
+	loc, _ := time.LoadLocation("UTC")
+
 	cf.FileName = sfile
 	cf.FileSize = stat.Size()
-	cf.FileTime = stat.ModTime()
+	cf.FileTime = stat.ModTime().In(loc)
 	cf.FileData = make([]byte, cf.FileSize)
 
 	buffer := bufio.NewReader(file)
@@ -56,5 +62,7 @@ func LoadFile(sfile string) (*XFile, error) {
 		return nil, err
 	}
 
+	chk := md5.Sum(cf.FileData)
+	cf.CheckSum = hex.EncodeToString(chk[:16])
 	return &cf, nil
 }

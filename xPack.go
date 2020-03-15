@@ -21,7 +21,7 @@ import (
 )
 
 // Gzip string
-func Gzip(data *[]byte) string {
+func Gzip(data *[]byte) []byte {
 	var b bytes.Buffer
 
 	gz := gzip.NewWriter(&b)
@@ -35,19 +35,62 @@ func Gzip(data *[]byte) string {
 		panic(err)
 	}
 
-	str := base64.StdEncoding.EncodeToString(b.Bytes())
+	buf := make([]byte, base64.StdEncoding.EncodedLen(b.Len()))
+	base64.StdEncoding.Encode(buf, b.Bytes())
 
-	return str
+	return buf
 }
 
 // Gunzip #
-func Gunzip(data *string, dst *[]byte) error {
-	src, err := base64.StdEncoding.DecodeString(*data)
+func Gunzip(data *[]byte, dst *[]byte) error {
+	dbuf := make([]byte, base64.StdEncoding.DecodedLen(len(*data)))
+	n, err := base64.StdEncoding.Decode(dbuf, *data)
 	if err != nil {
 		return err
 	}
 
-	gr, err := gzip.NewReader(bytes.NewBuffer(src))
+	// wenn nicht gezippt ?
+	if dbuf[0] != 0x1f || dbuf[1] != 0x8b || dbuf[2] != 0x08 {
+		*dst = dbuf[:n]
+		return nil
+	}
+
+	gr, err := gzip.NewReader(bytes.NewBuffer(dbuf[:n]))
+	if err != nil {
+		return err
+	}
+
+	defer gr.Close()
+
+	*dst, err = ioutil.ReadAll(gr)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// GzipBytes #
+func GzipBytes(data *[]byte) []byte {
+	var b bytes.Buffer
+
+	gz := gzip.NewWriter(&b)
+	if _, err := gz.Write(*data); err != nil {
+		panic(err)
+	}
+	if err := gz.Flush(); err != nil {
+		panic(err)
+	}
+	if err := gz.Close(); err != nil {
+		panic(err)
+	}
+
+	return b.Bytes()
+}
+
+// GunzipBytes #
+func GunzipBytes(src *[]byte, dst *[]byte) error {
+	gr, err := gzip.NewReader(bytes.NewBuffer(*src))
 	if err != nil {
 		return err
 	}
