@@ -29,6 +29,36 @@ type XFile struct {
 	FileData []byte
 }
 
+// SFile #
+type SFile struct {
+	FileName string `json:"filename"`
+	FileSize int64  `json:"filesize"`
+	FileTime string `json:"filetime"`
+	CheckSum string `json:"checksum"`
+	FileType string `json:"filetype"`
+	FileData string `json:"filedata"`
+}
+
+// XFile2SFile #
+func XFile2SFile(xf *XFile) (sf SFile) {
+	sf.FileName = xf.FileName
+	sf.FileSize = xf.FileSize
+	sf.FileTime = xf.FileTime.Format(time.RFC3339)
+	sf.CheckSum = xf.CheckSum
+	sf.FileType = xf.FileType
+	return
+}
+
+// SFile2XFile #
+func SFile2XFile(sf *SFile) (xf XFile) {
+	xf.FileName = sf.FileName
+	xf.FileSize = sf.FileSize
+	xf.FileTime, _ = time.Parse(time.RFC3339, sf.FileTime)
+	xf.CheckSum = sf.CheckSum
+	xf.FileType = sf.FileType
+	return
+}
+
 // LoadFile #
 func LoadFile(sfile string) (*XFile, error) {
 	stat, err := os.Stat(sfile)
