@@ -304,9 +304,8 @@ func _log(stime string, s string) {
 	sti := FTime()[0:8]
 
 	Global.logFileName = Global.logDir + Global.PathSeparator + sti[0:4] + Global.PathSeparator + sti[4:6]
-	if !DirExists(Global.logFileName) {
-		CreateDir(Global.logFileName)
-	}
+
+	CreateDirIfNotExist(Global.logFileName)
 
 	Global.logFileName = Global.logFileName + Global.PathSeparator + Global.logPfx + sti + ".log"
 
@@ -396,36 +395,14 @@ func LoadFiles(path, match string) (files []string, err error) {
 	return files, nil
 }
 
-// CreateDir #
-func CreateDir(dirName string) bool {
-	src, err := os.Stat(dirName)
-
-	if os.IsNotExist(err) {
-		fmt.Println("CreateDir:", dirName)
-
-		err = nil
-		sDirs := strings.Split(dirName, Global.PathSeparator)
-		cDir := ""
-		for i := 1; err == nil && i < len(sDirs); i++ {
-			cDir = cDir + Global.PathSeparator + sDirs[i]
-			_, e := os.Stat(cDir)
-			if e != nil {
-				err = os.Mkdir(cDir, 0777)
-				if err == nil {
-					os.Chmod(cDir, 0777)
-				}
-			}
-		}
-
+// CreateDirIfNotExist #
+func CreateDirIfNotExist(dirName string) bool {
+	if _, err := os.Stat(dirName); os.IsNotExist(err) {
+		err = os.MkdirAll(dirName, 0755)
 		if err != nil {
 			panic(err)
 		}
 		return true
-	}
-
-	if src.Mode().IsRegular() {
-		fmt.Println(dirName, "already exist as a file!")
-		return false
 	}
 
 	return false
