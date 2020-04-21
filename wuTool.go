@@ -27,11 +27,11 @@ type GlobalData struct {
 	PathSeparator string
 	Xargs         map[string]string
 	Debug         int
-	xargsWithOut  []string
 
-	logDir      string
-	logPfx      string
-	logFileName string
+	xargsWithOut []string
+	logDir       string
+	logPfx       string
+	logFileName  string
 }
 
 // Global #
@@ -275,27 +275,28 @@ func Log(v ...interface{}) {
 }
 
 func _logx(s string) (ss string) {
-	buf := []byte(s)
-	if buf[0] == '\n' {
-		fmt.Fprint(os.Stderr, "\n")
-		s = s[1:len(s)]
+	buf := []rune(s)
+
+	for buf[0] == '\r' || buf[0] == '\n' {
+		fmt.Fprint(os.Stderr, string(buf[0]))
+		buf = buf[1:len(buf)]
 	}
 
 	stime := STime(time.Now())
-	if len(s) > 0 {
+	if len(buf) > 0 {
 		fmt.Fprint(os.Stderr, stime)
-		e := s[len(s)-1:]
-		if e == "#" {
-			s = s[:len(s)-1]
+		e := buf[len(buf)-1]
+		if e == '#' {
+			buf = buf[:len(buf)-1]
 		}
-		fmt.Fprint(os.Stderr, s)
-		ss = stime + s
+		fmt.Fprint(os.Stderr, string(buf))
+		ss = stime + string(buf)
 
-		if e != "#" {
+		if e != '#' {
 			fmt.Fprint(os.Stderr, "\n")
 		}
 	}
-	_log(stime, s)
+	_log(stime, string(buf))
 
 	return
 }
@@ -713,3 +714,15 @@ func GetVersion(ss string) string {
 		strconv.Itoa(v[2]) + "." +
 		strconv.Itoa(v[3])
 }
+
+// BitIsSet #
+func BitIsSet(b, flag uint) bool { return b&flag != 0 }
+
+// BitSet #
+func BitSet(b, flag uint) uint { return b | flag }
+
+// BitClear #
+func BitClear(b, flag uint) uint { return b &^ flag }
+
+// BitToggle #
+func BitToggle(b, flag uint) uint { return b ^ flag }
