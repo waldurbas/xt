@@ -12,7 +12,9 @@ package xt
 
 import (
 	"bytes"
+	"fmt"
 	"io"
+	"os"
 )
 
 // Buffer #
@@ -55,14 +57,19 @@ func (b *Buffer) Clear() {
 	b.off = 0
 }
 
-// WriteLine #
-func (b *Buffer) WriteLine(s string) (n int, err error) {
-	le := len(s) + 1
+// WriteString #
+func (b *Buffer) WriteString(s string) (n int, err error) {
+	le := len(s)
 	m, ok := b.tryGrowByReslice(le)
 	if !ok {
 		m = b.grow(le)
 	}
-	return copy(b.buf[m:], s+string(byte(10))), nil
+	return copy(b.buf[m:], s), nil
+}
+
+// WriteLine #
+func (b *Buffer) WriteLine(s string) (n int, err error) {
+	return b.WriteString(s + string(byte(10)))
 }
 
 // ReadLine #
@@ -82,6 +89,30 @@ func (b *Buffer) ReadLine(line *string) (err error) {
 	}
 
 	*line = string(slice[:le])
+	return nil
+}
+
+// WriteToFile #
+func (b *Buffer) WriteToFile(sFile string) error {
+
+	f, err := os.OpenFile(sFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
+	if err != nil {
+		return err
+	}
+
+	defer f.Close()
+
+	b.off = 0
+	if _, err := f.WriteString(b.String()); err != nil {
+		fmt.Println(err)
+	}
+
+	// Save file changes.
+	err = f.Sync()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
