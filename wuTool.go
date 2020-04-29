@@ -726,3 +726,17 @@ func BitClear(b, flag uint) uint { return b &^ flag }
 
 // BitToggle #
 func BitToggle(b, flag uint) uint { return b ^ flag }
+
+// DelimTextAdd #
+func DelimTextAdd(ss *string, s, delim string) {
+	if len(s) < 1 {
+		return
+	}
+
+	if len(*ss) > 0 {
+		*ss = *ss + delim + s
+		return
+	}
+
+	*ss = s
+}

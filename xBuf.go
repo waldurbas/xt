@@ -93,14 +93,26 @@ func (b *Buffer) ReadLine(line *string) (err error) {
 }
 
 // WriteToFile #
-func (b *Buffer) WriteToFile(sFile string) error {
+func (b *Buffer) WriteToFile(sFile string, toAdd bool) error {
 
-	f, err := os.OpenFile(sFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
+	var flag int = os.O_WRONLY | os.O_CREATE
+	if toAdd {
+		flag = flag | os.O_APPEND
+	} else {
+		flag = flag | os.O_TRUNC
+	}
+
+	f, err := os.OpenFile(sFile, flag, 0666)
 	if err != nil {
 		return err
 	}
 
 	defer f.Close()
+
+	return b.writeFile(f)
+}
+
+func (b *Buffer) writeFile(f *os.File) error {
 
 	b.off = 0
 	if _, err := f.WriteString(b.String()); err != nil {
@@ -108,8 +120,7 @@ func (b *Buffer) WriteToFile(sFile string) error {
 	}
 
 	// Save file changes.
-	err = f.Sync()
-	if err != nil {
+	if err := f.Sync(); err != nil {
 		return err
 	}
 
