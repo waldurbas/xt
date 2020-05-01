@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"path"
 	"path/filepath"
 	"sort"
 	"strconv"
@@ -739,4 +740,15 @@ func DelimTextAdd(ss *string, s, delim string) {
 	}
 
 	*ss = s
+}
+
+// PathJoin # path.Join ist falsch fuer Windows
+func PathJoin(elem ...string) string {
+
+	for i, e := range elem {
+		if e != "" {
+			return path.Clean(strings.Join(elem[i:], Global.PathSeparator))
+		}
+	}
+	return ""
 }
