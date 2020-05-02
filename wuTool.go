@@ -54,7 +54,7 @@ func init() {
 
 	var prev string
 	for _, v := range os.Args[1:] {
-		if v[0] == '-' {
+		if v[0] == '-' || v[0] == '/' {
 			prev = strings.ToLower(v[1:2])
 			if prev == "q" || prev == "x" {
 				Global.Xargs[prev] = v[2:]
@@ -125,6 +125,17 @@ func ParamExist(sKey string) (string, bool) {
 	//	fmt.Println("ParamExist.Key: ", uKey, ", ok: ", ok, ", v: ", v)
 
 	return v, ok
+}
+
+// ParamExists #
+func ParamExists(sKeys []string) bool {
+	for _, k := range sKeys {
+		if ParamKeyExist(k) {
+			return true
+		}
+	}
+
+	return false
 }
 
 // ParamValueExist #
@@ -751,4 +762,10 @@ func PathJoin(elem ...string) string {
 		}
 	}
 	return ""
+}
+
+// ChangeFileExt #
+func ChangeFileExt(sfile string, newext string) string {
+	ext := path.Ext(sfile)
+	return sfile[0:len(sfile)-len(ext)] + newext
 }
