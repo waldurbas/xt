@@ -289,7 +289,7 @@ func Log(v ...interface{}) {
 func _logx(s string) (ss string) {
 	buf := []rune(s)
 
-	for buf[0] == '\r' || buf[0] == '\n' {
+	for len(buf) > 0 && (buf[0] == '\r' || buf[0] == '\n') {
 		fmt.Fprint(os.Stderr, string(buf[0]))
 		buf = buf[1:len(buf)]
 	}
