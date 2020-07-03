@@ -312,12 +312,24 @@ func _logx(s string) (ss string) {
 	return
 }
 
+func createDirIfNotExist(dirName string) bool {
+	if _, err := os.Stat(dirName); os.IsNotExist(err) {
+		err = os.MkdirAll(dirName, 0755)
+		if err != nil {
+			panic(err)
+		}
+		return true
+	}
+
+	return false
+}
+
 func _log(stime string, s string) {
 	sti := FTime()[0:8]
 
 	Global.logFileName = Global.logDir + Global.PathSeparator + sti[0:4] + Global.PathSeparator + sti[4:6]
 
-	CreateDirIfNotExist(Global.logFileName)
+	createDirIfNotExist(Global.logFileName)
 
 	Global.logFileName = Global.logFileName + Global.PathSeparator + Global.logPfx + sti + ".log"
 
@@ -405,39 +417,6 @@ func LoadFiles(path, match string) (files []string, err error) {
 	sort.Strings(files)
 
 	return files, nil
-}
-
-// CreateDirIfNotExist #
-func CreateDirIfNotExist(dirName string) bool {
-	if _, err := os.Stat(dirName); os.IsNotExist(err) {
-		err = os.MkdirAll(dirName, 0755)
-		if err != nil {
-			panic(err)
-		}
-		return true
-	}
-
-	return false
-}
-
-// DirExists #
-func DirExists(path string) bool {
-	f, err := os.Stat(path)
-
-	if os.IsNotExist(err) {
-		return false
-	}
-
-	return f.IsDir()
-}
-
-// FileExists #
-func FileExists(filename string) bool {
-	f, err := os.Stat(filename)
-	if os.IsNotExist(err) {
-		return false
-	}
-	return !f.IsDir()
 }
 
 // dropCR drops a terminal \r from the data.
