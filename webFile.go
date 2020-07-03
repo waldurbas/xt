@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math"
 	"net/http"
 	"os"
 	"strconv"
@@ -207,7 +208,22 @@ func (wc *WriteCounter) Write(p []byte) (int, error) {
 	return n, nil
 }
 
+func readableBytes(n uint64) string {
+	sizes := []string{"B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"}
+
+	b := float64(1024)
+	e := math.Floor(math.Log(float64(n)) / math.Log(b))
+	sfx := sizes[int(e)]
+	v := float64(n) / math.Pow(b, math.Floor(e))
+	f := "%.0f"
+	if v < 10 {
+		f = "%.1f"
+	}
+
+	return fmt.Sprintf(f+" %s", v, sfx)
+}
+
 // PrintProgress #prints the progress of a file write
 func (wc WriteCounter) PrintProgress() {
-	fmt.Printf("\r%s\rDownloading... %s complete", strings.Repeat(" ", 50), ReadableBytes(wc.Total))
+	fmt.Printf("\r%s\rDownloading... %s complete", strings.Repeat(" ", 50), readableBytes(wc.Total))
 }

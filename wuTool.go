@@ -12,7 +12,6 @@ package xt
 
 import (
 	"fmt"
-	"math"
 	"os"
 	"path"
 	"path/filepath"
@@ -595,96 +594,6 @@ func Esubstr(s string, ix int, le int) string {
 	return b
 }
 
-// FormatInt64 #Format Integer mit Tausend Points
-func FormatInt64(n int64) string {
-	in := strconv.FormatInt(n, 10)
-	out := make([]byte, len(in)+(len(in)-2+int(in[0]/'0'))/3)
-	if in[0] == '-' {
-		in, out[0] = in[1:], '-'
-	}
-
-	for i, j, k := len(in)-1, len(out)-1, 0; ; i, j = i-1, j-1 {
-		out[j] = in[i]
-		if i == 0 {
-			return string(out)
-		}
-		if k++; k == 3 {
-			j, k = j-1, 0
-			out[j] = '.'
-		}
-	}
-}
-
-// FormatInt #Format Integer mit Tausend Points
-func FormatInt(n int) string {
-	return FormatInt64(int64(n))
-}
-
-// ReadableBytes #
-func ReadableBytes(n uint64) string {
-	sizes := []string{"B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"}
-
-	b := float64(1024)
-	e := math.Floor(math.Log(float64(n)) / math.Log(b))
-	sfx := sizes[int(e)]
-	v := float64(n) / math.Pow(b, math.Floor(e))
-	f := "%.0f"
-	if v < 10 {
-		f = "%.1f"
-	}
-
-	return fmt.Sprintf(f+" %s", v, sfx)
-}
-
-// ToUTF8 #ISO8859_1 to UTF8
-func ToUTF8(s string) string {
-
-	iso8859Buf := []byte(s)
-
-	buf := make([]rune, len(iso8859Buf))
-	for i, b := range iso8859Buf {
-		if b == 0x80 {
-			buf[i] = '€'
-		} else {
-			buf[i] = rune(b)
-		}
-	}
-	return string(buf)
-}
-
-// ToAnsi #UTF8 to ANSI
-func ToAnsi(buf *[]byte) []byte {
-	ansiBuf := make([]byte, len(*buf))
-
-	a := 0
-	for i := 0; i < len(*buf); i++ {
-		switch (*buf)[i] {
-		case 0xe2: // € = e2 82 ac
-			i++
-			if (*buf)[i] == 0x82 {
-				i++
-				if (*buf)[i] == 0xac {
-					ansiBuf[a] = 0x80
-					a++
-				}
-			}
-		case 0xc2:
-			i++
-			ansiBuf[a] = (*buf)[i]
-			a++
-		case 0xc3:
-			i++
-			ansiBuf[a] = (*buf)[i] + 0x40
-			a++
-		default:
-			ansiBuf[a] = (*buf)[i]
-			a++
-		}
-	}
-
-	return ansiBuf[:a]
-}
-
 // SHex #
 func SHex(buf *[]byte) string {
 
@@ -727,18 +636,6 @@ func GetVersion(ss string) string {
 		strconv.Itoa(v[3])
 }
 
-// BitIsSet #
-func BitIsSet(b, flag uint) bool { return b&flag != 0 }
-
-// BitSet #
-func BitSet(b, flag uint) uint { return b | flag }
-
-// BitClear #
-func BitClear(b, flag uint) uint { return b &^ flag }
-
-// BitToggle #
-func BitToggle(b, flag uint) uint { return b ^ flag }
-
 // DelimTextAdd #
 func DelimTextAdd(ss *string, s, delim string) {
 	if len(s) < 1 {
@@ -751,17 +648,6 @@ func DelimTextAdd(ss *string, s, delim string) {
 	}
 
 	*ss = s
-}
-
-// PathJoin # path.Join ist falsch fuer Windows
-func PathJoin(elem ...string) string {
-
-	for i, e := range elem {
-		if e != "" {
-			return path.Clean(strings.Join(elem[i:], Global.PathSeparator))
-		}
-	}
-	return ""
 }
 
 // ChangeFileExt #
